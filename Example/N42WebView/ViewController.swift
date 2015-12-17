@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import N42WebView
 
 class ViewController: UIViewController {
 
@@ -20,5 +21,9 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    @IBAction func touchWebViewButton(sender: AnyObject) {
+        debugPrint("touchWebViewButton")
+        let vc = N42WebView.N42WebViewController()
+    }
 }
 
