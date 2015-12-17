@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-class N42WebViewController: UIViewController {
+public class N42WebViewController: UIViewController {
     lazy var webView: WKWebView = {
         var webViewTmmp = WKWebView()
         webViewTmmp.navigationDelegate = self
@@ -48,18 +48,47 @@ class N42WebViewController: UIViewController {
     }()
     
     
-    var toolbarStyle: UIBarStyle?
-    var toolbarTintColor: UIColor?
-    var actionUrl: NSURL?
-    var navTitle: String?
+    public var request: NSURLRequest?
+    public var toolbarStyle: UIBarStyle?
+    public var toolbarTintColor: UIColor?
+    public var actionUrl: NSURL?
+    public var navTitle: String?
+    public var progressViewTintColor: UIColor?
+    
+    public required convenience init(coder aDecoder: NSCoder) {
+        self.init(coder: aDecoder)
+    }
+    
+    public init(url: String) {
+        self.request = NSURLRequest(URL: NSURL(string: url) ?? NSURL())
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    public init(request: NSURLRequest) {
+        self.request = request
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    deinit {
+        removeProgressViewObserver()
+    }
 }
 
 extension N42WebViewController {
-    override func loadView() {
+    public func loadRequest() {
+        if let request = request {
+            webView.loadRequest(request)
+        }
+    }
+}
+
+extension N42WebViewController {
+    public override func loadView() {
         view = webView
+        loadRequest()
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         
         refreshToolbarItems()
@@ -68,24 +97,24 @@ extension N42WebViewController {
             navigationItem.title = navTitle
         }
     }
-    
-    override func viewDidLayoutSubviews() {
+
+    public override func viewDidLayoutSubviews() {
         progressView.frame = CGRectMake(0, topLayoutGuide.length, view.frame.size.width, 0.5)
     }
     
-    override func viewWillAppear(animated: Bool) {
+    public override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
         navigationController?.setToolbarHidden(false, animated: true)
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    public override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         
         navigationController?.setToolbarHidden(true, animated: true)
     }
     
-    override func viewDidDisappear(animated: Bool) {
+    public override func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
@@ -96,10 +125,17 @@ extension N42WebViewController {
 extension N42WebViewController {
     func appendProgressView() {
         view.addSubview(progressView)
+        if let progressViewTintColor = progressViewTintColor {
+            progressView.tintColor = progressViewTintColor
+        }
         webView.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions.New, context: nil)
     }
     
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    func removeProgressViewObserver() {
+        webView.removeObserver(self, forKeyPath: "estimatedProgress")
+    }
+    
+    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
         if keyPath == "estimatedProgress" {
             progressView.hidden = webView.estimatedProgress == 1
             let progress: Float = progressView.hidden ? 0.0 : Float(webView.estimatedProgress)
@@ -174,12 +210,12 @@ extension N42WebViewController {
 }
 
 extension N42WebViewController: WKNavigationDelegate {
-    func webView(webView: WKWebView, didCommitNavigation navigation: WKNavigation!) {
+    public func webView(webView: WKWebView, didCommitNavigation navigation: WKNavigation!) {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         refreshToolbarItems()
     }
     
-    func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
+    public func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         refreshToolbarItems()
         
@@ -188,12 +224,12 @@ extension N42WebViewController: WKNavigationDelegate {
         }
     }
     
-    func webView(webView: WKWebView, didFailNavigation navigation: WKNavigation!, withError error: NSError) {
+    public func webView(webView: WKWebView, didFailNavigation navigation: WKNavigation!, withError error: NSError) {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         refreshToolbarItems()
     }
     
-    func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
+    public func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.URL else {
             decisionHandler(.Allow)
             return
@@ -212,7 +248,7 @@ extension N42WebViewController: WKNavigationDelegate {
 }
 
 extension N42WebViewController: WKUIDelegate {
-    func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+    public func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         // Why is WKWebView not opening links with target=“_blank” http://stackoverflow.com/a/25853806/397457
         let request = navigationAction.request.mutableCopy()
         request.setValue("WOW :)", forHTTPHeaderField: "TEST-HEADER")
