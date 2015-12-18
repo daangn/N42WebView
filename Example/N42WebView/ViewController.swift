@@ -22,12 +22,14 @@ class ViewController: UIViewController {
     }
 
     @IBAction func touchWebViewButton(sender: AnyObject) {
-        let vc = N42WebViewController(url: "http://naver.com")
+        let vc = N42WebViewController(url: "http://blog.iamseapy.com")
         vc.navTitle = "N42 타이틀"
         vc.toolbarStyle = UIBarStyle.Default
         vc.toolbarTintColor = UIColor.orangeColor()
-        vc.actionUrl = NSURL(string: "http://daum.net")
+        vc.actionUrl = NSURL(string: "http://seapy.com")
         vc.progressViewTintColor = UIColor.redColor()
+        vc.headers = ["HEADER-KEY-YOYOYOY" : "ddddd"]
+        vc.allowHosts = ["blog.iamseapy.com"]
         
         navigationController?.pushViewController(vc, animated: true)
     }

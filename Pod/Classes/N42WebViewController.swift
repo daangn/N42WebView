@@ -49,6 +49,10 @@ public class N42WebViewController: UIViewController {
     
     
     public var request: NSURLRequest?
+    public var headers: [String: String]?
+    public var allowHosts: [String]?
+    public var decidePolicyForNavigationActionHandler: ((webView: WKWebView, navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) -> Void)?
+    
     public var toolbarStyle: UIBarStyle?
     public var toolbarTintColor: UIColor?
     public var actionUrl: NSURL?
@@ -77,9 +81,28 @@ public class N42WebViewController: UIViewController {
 extension N42WebViewController {
     public func loadRequest() {
         if let request = request {
-            webView.loadRequest(request)
+            if let requestWithHeader = requestWithHeadersAllowHosts(request) {
+                webView.loadRequest(requestWithHeader)
+            } else {
+                webView.loadRequest(request)
+            }
         }
     }
+    
+    func requestWithHeadersAllowHosts(request: NSURLRequest) -> NSURLRequest? {
+        guard let host = request.URL?.host where (allowHosts?.contains(host) ?? false) else {
+            return nil
+        }
+        if let headers = headers {
+            let request = request.mutableCopy()
+            for (key, value) in headers {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+            return request as? NSURLRequest
+        }
+        return nil
+    }
+
 }
 
 extension N42WebViewController {
@@ -183,6 +206,7 @@ extension N42WebViewController {
     }
 }
 
+// Refresh UI
 extension N42WebViewController {
     func refreshToolbarItems() {
         backButton.enabled = webView.canGoBack
@@ -230,32 +254,50 @@ extension N42WebViewController: WKNavigationDelegate {
     }
     
     public func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.URL else {
+        if let handler = decidePolicyForNavigationActionHandler {
+            handler(webView: webView, navigationAction: navigationAction, decisionHandler: decisionHandler)
+        } else if let url = navigationAction.request.URL {
+            let httpSchemes = ["http", "https"]
+            let app = UIApplication.sharedApplication()
+            if !httpSchemes.contains(url.scheme) && app.canOpenURL(url) {
+                app.openURL(url)
+                decisionHandler(.Cancel)
+                return
+            }
+            
+            if navigationAction.navigationType == .LinkActivated
+                || navigationAction.navigationType == .FormSubmitted
+                || navigationAction.navigationType == .BackForward
+                || navigationAction.navigationType == .Reload
+                || navigationAction.navigationType == .FormResubmitted
+            {
+                if let request = requestWithHeadersAllowHosts(navigationAction.request) {
+                    webView.loadRequest(request)
+                    decisionHandler(.Cancel)
+                    return
+                }
+            }
             decisionHandler(.Allow)
-            return
+        } else {
+            decisionHandler(.Allow)
         }
-        
-        let httpSchemes = ["http", "https"]
-        let app = UIApplication.sharedApplication()
-        if !httpSchemes.contains(url.scheme) && app.canOpenURL(url) {
-            app.openURL(url)
-            decisionHandler(.Cancel)
-            return
-        }
-        
-        decisionHandler(.Allow)
     }
 }
 
 extension N42WebViewController: WKUIDelegate {
     public func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         // Why is WKWebView not opening links with target=“_blank” http://stackoverflow.com/a/25853806/397457
-        let request = navigationAction.request.mutableCopy()
-        request.setValue("WOW :)", forHTTPHeaderField: "TEST-HEADER")
-        if !(navigationAction.targetFrame?.mainFrame ?? false) {
-            webView.loadRequest(request.request)
+        let requestHandler = { (request: NSURLRequest) in
+            if !(navigationAction.targetFrame?.mainFrame ?? false) {
+                webView.loadRequest(request)
+            }
         }
-//        webView.loadRequest(request.request)
+        
+        if let request = requestWithHeadersAllowHosts(navigationAction.request) {
+            requestHandler(request)
+        } else {
+            requestHandler(navigationAction.request)
+        }
         
         return nil
     }
