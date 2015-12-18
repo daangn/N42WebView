@@ -1,6 +1,6 @@
 # N42WebView
 
-[![CI Status](http://img.shields.io/travis/ChangHoon Jung/N42WebView.svg?style=flat)](https://travis-ci.org/ChangHoon Jung/N42WebView)
+[![CI Status](http://img.shields.io/travis/n42corp/N42WebView.svg?style=flat)](https://travis-ci.org/n42corp/N42WebView)
 [![Version](https://img.shields.io/cocoapods/v/N42WebView.svg?style=flat)](http://cocoapods.org/pods/N42WebView)
 [![License](https://img.shields.io/cocoapods/l/N42WebView.svg?style=flat)](http://cocoapods.org/pods/N42WebView)
 [![Platform](https://img.shields.io/cocoapods/p/N42WebView.svg?style=flat)](http://cocoapods.org/pods/N42WebView)
