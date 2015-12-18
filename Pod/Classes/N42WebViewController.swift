@@ -94,11 +94,11 @@ extension N42WebViewController {
             return nil
         }
         if let headers = headers {
-            let request = request.mutableCopy()
+            let mutableRequest: NSMutableURLRequest? = request.mutableCopy() as? NSMutableURLRequest
             for (key, value) in headers {
-                request.setValue(value, forHTTPHeaderField: key)
+                mutableRequest?.setValue(value, forHTTPHeaderField: key)
             }
-            return request as? NSURLRequest
+            return mutableRequest
         }
         return nil
     }
@@ -265,11 +265,13 @@ extension N42WebViewController: WKNavigationDelegate {
                 return
             }
             
+            // form submit is not request with header
+            // because WKWebView NSURLRequest body is nil.
+            // - WKWebView ignores NSURLRequest body : https://forums.developer.apple.com/thread/18952
+            // - Bug 145410 [WKWebView loadRequest:] ignores HTTPBody in POST requests : https://bugs.webkit.org/show_bug.cgi?id=145410
             if navigationAction.navigationType == .LinkActivated
-                || navigationAction.navigationType == .FormSubmitted
                 || navigationAction.navigationType == .BackForward
                 || navigationAction.navigationType == .Reload
-                || navigationAction.navigationType == .FormResubmitted
             {
                 if let request = requestWithHeadersAllowHosts(navigationAction.request) {
                     webView.loadRequest(request)
