@@ -11,10 +11,11 @@ import WebKit
 
 public class N42WebViewController: UIViewController {
     lazy var webView: WKWebView = {
-        var webViewTmmp = WKWebView()
-        webViewTmmp.navigationDelegate = self
-        webViewTmmp.UIDelegate = self
-        return webViewTmmp
+        var webViewTmp = self.webViewConfiguration == nil ?
+            WKWebView() : WKWebView(frame: CGRectZero, configuration: self.webViewConfiguration!)
+        webViewTmp.navigationDelegate = self
+        webViewTmp.UIDelegate = self
+        return webViewTmp
     }()
     
     lazy var backButton: UIBarButtonItem = {
@@ -48,6 +49,7 @@ public class N42WebViewController: UIViewController {
     }()
     
     
+    public var webViewConfiguration: WKWebViewConfiguration?
     public var request: NSURLRequest?
     public var headers: [String: String]?
     public var allowHosts: [String]?
