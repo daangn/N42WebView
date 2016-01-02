@@ -27,3 +27,10 @@ ChangHoon Jung, iamseapy@gmail.com
 ## License
 
 N42WebView is available under the MIT license. See the LICENSE file for more info.
+
+## Info
+
+// form submit is not request with header
+// because WKWebView NSURLRequest body is nil.
+// - WKWebView ignores NSURLRequest body : https://forums.developer.apple.com/thread/18952
+// - Bug 145410 [WKWebView loadRequest:] ignores HTTPBody in POST requests : https://bugs.webkit.org/show_bug.cgi?id=145410
