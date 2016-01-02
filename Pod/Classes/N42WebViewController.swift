@@ -19,13 +19,11 @@ public class N42WebViewController: UIViewController {
     }()
     
     lazy var backButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Rewind, target: self, action: Selector("touchBackButton"))
-        return button
+        return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .Plain, target: self, action: Selector("touchBackButton"))
     }()
     
     lazy var fowardButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Play, target: self, action: Selector("touchFowardButton"))
-        return button
+        return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .Plain, target: self, action: Selector("touchFowardButton"))
     }()
     
     lazy var refreshButton: UIBarButtonItem = {
@@ -77,6 +75,11 @@ public class N42WebViewController: UIViewController {
     
     deinit {
         removeProgressViewObserver()
+    }
+    
+    private func loadImageFromBundle(name: String) -> UIImage? {
+        let path = NSBundle(forClass: self.dynamicType).pathForResource("N42WebView", ofType: "bundle")
+        return UIImage(named: name, inBundle: NSBundle(path: path ?? ""), compatibleWithTraitCollection: nil)
     }
 }
 
