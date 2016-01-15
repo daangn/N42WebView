@@ -53,6 +53,7 @@ public class N42WebViewController: UIViewController {
     public var allowHosts: [String]?
     public var decidePolicyForNavigationActionHandler: ((webView: WKWebView, navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) -> Void)?
     
+    public var hideToolbar: Bool = false
     public var toolbarStyle: UIBarStyle?
     public var toolbarTintColor: UIColor?
     public var actionUrl: NSURL?
@@ -133,7 +134,7 @@ extension N42WebViewController {
     public override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationController?.setToolbarHidden(false, animated: true)
+        navigationController?.setToolbarHidden(hideToolbar, animated: true)
     }
     
     public override func viewWillDisappear(animated: Bool) {
@@ -214,6 +215,10 @@ extension N42WebViewController {
 // Refresh UI
 extension N42WebViewController {
     func refreshToolbarItems() {
+        if hideToolbar {
+            return
+        }
+        
         backButton.enabled = webView.canGoBack
         fowardButton.enabled = webView.canGoForward
         
