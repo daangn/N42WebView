@@ -19,25 +19,25 @@ public class N42WebViewController: UIViewController {
     }()
     
     lazy var backButton: UIBarButtonItem = {
-        return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .Plain, target: self, action: Selector("touchBackButton"))
+        return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .Plain, target: self, action: #selector(N42WebViewController.touchBackButton))
     }()
     
     lazy var fowardButton: UIBarButtonItem = {
-        return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .Plain, target: self, action: Selector("touchFowardButton"))
+        return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .Plain, target: self, action: #selector(N42WebViewController.touchFowardButton))
     }()
     
     lazy var refreshButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: Selector("touchRefreshButton"))
+        var button = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: #selector(N42WebViewController.touchRefreshButton))
         return button
     }()
     
     lazy var stopButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Stop, target: self, action: Selector("touchStopButton"))
+        var button = UIBarButtonItem(barButtonSystemItem: .Stop, target: self, action: #selector(N42WebViewController.touchStopButton))
         return button
     }()
     
     lazy var actionButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: Selector("touchActionButton"))
+        var button = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: #selector(N42WebViewController.touchActionButton))
         return button
     }()
     
@@ -202,7 +202,7 @@ extension N42WebViewController {
             return
         }
 
-        if url.absoluteString.hasPrefix("file:///") {
+        if let absUrl = url.absoluteString where absUrl.hasPrefix("file:///") {
             let docController = UIDocumentInteractionController(URL: url)
             docController.presentOptionsMenuFromRect(view.bounds, inView: view, animated: true)
         } else {
@@ -269,7 +269,7 @@ extension N42WebViewController: WKNavigationDelegate {
         } else if let url = navigationAction.request.URL {
             let httpSchemes = ["http", "https"]
             let app = UIApplication.sharedApplication()
-            if !httpSchemes.contains(url.scheme) && app.canOpenURL(url) {
+            if let scheme = url.scheme where !httpSchemes.contains(scheme) && app.canOpenURL(url) {
                 app.openURL(url)
                 decisionHandler(.Cancel)
                 return

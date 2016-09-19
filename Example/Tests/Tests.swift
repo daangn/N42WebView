@@ -1,9 +1,10 @@
 // https://github.com/Quick/Quick
 
-import Quick
-import Nimble
-import N42WebView
+//import Quick
+//import Nimble
+//import N42WebView
 
+/*
 class TableOfContentsSpec: QuickSpec {
     override func spec() {
         describe("these will fail") {
@@ -48,3 +49,5 @@ class TableOfContentsSpec: QuickSpec {
         }
     }
 }
+*/
+ 
