@@ -21,14 +21,14 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func touchWebViewButton(sender: AnyObject) {
+    @IBAction func touchWebViewButton(_ sender: AnyObject) {
         let vc = N42WebViewController(url: "http://blog.iamseapy.com")
         vc.navTitle = "N42 타이틀"
 //        vc.hideToolbar = true
-        vc.toolbarStyle = UIBarStyle.Default
-        vc.toolbarTintColor = UIColor.orangeColor()
-        vc.actionUrl = NSURL(string: "http://seapy.com")
-        vc.progressViewTintColor = UIColor.redColor()
+        vc.toolbarStyle = UIBarStyle.default
+        vc.toolbarTintColor = UIColor.orange
+        vc.actionUrl = URL(string: "http://seapy.com")
+        vc.progressViewTintColor = UIColor.red
         vc.headers = ["HEADER-KEY-YOYOYOY" : "ddddd"]
         vc.allowHosts = ["blog.iamseapy.com"]
         

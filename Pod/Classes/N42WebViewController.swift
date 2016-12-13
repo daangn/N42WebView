@@ -9,67 +9,70 @@
 import UIKit
 import WebKit
 
-public class N42WebViewController: UIViewController {
+open class N42WebViewController: UIViewController {
     lazy var webView: WKWebView = {
         var webViewTmp = self.webViewConfiguration == nil ?
-            WKWebView() : WKWebView(frame: CGRectZero, configuration: self.webViewConfiguration!)
+            WKWebView() : WKWebView(frame: CGRect.zero, configuration: self.webViewConfiguration!)
         webViewTmp.navigationDelegate = self
-        webViewTmp.UIDelegate = self
+        webViewTmp.uiDelegate = self
         return webViewTmp
     }()
     
     lazy var backButton: UIBarButtonItem = {
-        return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .Plain, target: self, action: #selector(N42WebViewController.touchBackButton))
+        return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .plain, target: self, action: #selector(N42WebViewController.touchBackButton))
     }()
     
     lazy var fowardButton: UIBarButtonItem = {
-        return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .Plain, target: self, action: #selector(N42WebViewController.touchFowardButton))
+        return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .plain, target: self, action: #selector(N42WebViewController.touchFowardButton))
     }()
     
     lazy var refreshButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: #selector(N42WebViewController.touchRefreshButton))
+        var button = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(N42WebViewController.touchRefreshButton))
         return button
     }()
     
     lazy var stopButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Stop, target: self, action: #selector(N42WebViewController.touchStopButton))
+        var button = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(N42WebViewController.touchStopButton))
         return button
     }()
     
     lazy var actionButton: UIBarButtonItem = {
-        var button = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: #selector(N42WebViewController.touchActionButton))
+        var button = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(N42WebViewController.touchActionButton))
         return button
     }()
     
     lazy var progressView: UIProgressView = {
-        var progressView = UIProgressView(progressViewStyle: .Default)
+        var progressView = UIProgressView(progressViewStyle: .default)
         return progressView
     }()
     
     
-    public var webViewConfiguration: WKWebViewConfiguration?
-    public var request: NSURLRequest?
-    public var headers: [String: String]?
-    public var allowHosts: [String]?
-    public var decidePolicyForNavigationActionHandler: ((webView: WKWebView, navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) -> Void)?
+    open var webViewConfiguration: WKWebViewConfiguration?
+    open var request: URLRequest?
+    open var headers: [String: String]?
+    open var allowHosts: [String]?
+    open var decidePolicyForNavigationActionHandler: ((_ webView: WKWebView, _ navigationAction: WKNavigationAction, _ decisionHandler: (WKNavigationActionPolicy) -> Void) -> Void)?
     
-    public var hideToolbar: Bool = false
-    public var toolbarStyle: UIBarStyle?
-    public var toolbarTintColor: UIColor?
-    public var actionUrl: NSURL?
-    public var navTitle: String?
-    public var progressViewTintColor: UIColor?
+    open var hideToolbar: Bool = false
+    open var toolbarStyle: UIBarStyle?
+    open var toolbarTintColor: UIColor?
+    open var actionUrl: URL?
+    open var navTitle: String?
+    open var progressViewTintColor: UIColor?
     
     public required convenience init(coder aDecoder: NSCoder) {
         self.init(coder: aDecoder)
     }
     
     public init(url: String) {
-        self.request = NSURLRequest(URL: NSURL(string: url) ?? NSURL())
+        if let url = URL(string: url) {
+            self.request = URLRequest(url: url)
+        }
+        
         super.init(nibName: nil, bundle: nil)
     }
     
-    public init(request: NSURLRequest) {
+    public init(request: URLRequest) {
         self.request = request
         super.init(nibName: nil, bundle: nil)
     }
@@ -78,9 +81,9 @@ public class N42WebViewController: UIViewController {
         removeProgressViewObserver()
     }
     
-    private func loadImageFromBundle(name: String) -> UIImage? {
-        let path = NSBundle(forClass: self.dynamicType).pathForResource("N42WebView", ofType: "bundle")
-        return UIImage(named: name, inBundle: NSBundle(path: path ?? ""), compatibleWithTraitCollection: nil)
+    fileprivate func loadImageFromBundle(_ name: String) -> UIImage? {
+        let path = Bundle(for: type(of: self)).path(forResource: "N42WebView", ofType: "bundle")
+        return UIImage(named: name, in: Bundle(path: path ?? ""), compatibleWith: nil)
     }
 }
 
@@ -88,23 +91,23 @@ extension N42WebViewController {
     public func loadRequest() {
         if let request = request {
             if let requestWithHeader = requestWithHeadersAllowHosts(request) {
-                webView.loadRequest(requestWithHeader)
+                webView.load(requestWithHeader)
             } else {
-                webView.loadRequest(request)
+                webView.load(request)
             }
         }
     }
     
-    func requestWithHeadersAllowHosts(request: NSURLRequest) -> NSURLRequest? {
-        guard let host = request.URL?.host where (allowHosts?.contains(host) ?? false) else {
+    func requestWithHeadersAllowHosts(_ request: URLRequest) -> URLRequest? {
+        guard let host = request.url?.host, (allowHosts?.contains(host) ?? false) else {
             return nil
         }
         if let headers = headers {
-            let mutableRequest: NSMutableURLRequest? = request.mutableCopy() as? NSMutableURLRequest
+            let mutableRequest: NSMutableURLRequest? = (request as NSURLRequest).mutableCopy() as? NSMutableURLRequest
             for (key, value) in headers {
                 mutableRequest?.setValue(value, forHTTPHeaderField: key)
             }
-            return mutableRequest
+            return mutableRequest as URLRequest?
         }
         return nil
     }
@@ -112,12 +115,12 @@ extension N42WebViewController {
 }
 
 extension N42WebViewController {
-    public override func loadView() {
+    open override func loadView() {
         view = webView
         loadRequest()
     }
     
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         
         refreshToolbarItems()
@@ -127,26 +130,26 @@ extension N42WebViewController {
         }
     }
 
-    public override func viewDidLayoutSubviews() {
-        progressView.frame = CGRectMake(0, topLayoutGuide.length, view.frame.size.width, 0.5)
+    open override func viewDidLayoutSubviews() {
+        progressView.frame = CGRect(x: 0, y: topLayoutGuide.length, width: view.frame.size.width, height: 0.5)
     }
     
-    public override func viewWillAppear(animated: Bool) {
+    open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         navigationController?.setToolbarHidden(hideToolbar, animated: true)
     }
     
-    public override func viewWillDisappear(animated: Bool) {
+    open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         navigationController?.setToolbarHidden(true, animated: true)
     }
     
-    public override func viewDidDisappear(animated: Bool) {
+    open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
 }
 
@@ -157,17 +160,17 @@ extension N42WebViewController {
         if let progressViewTintColor = progressViewTintColor {
             progressView.tintColor = progressViewTintColor
         }
-        webView.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions.New, context: nil)
+        webView.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions.new, context: nil)
     }
     
     func removeProgressViewObserver() {
         webView.removeObserver(self, forKeyPath: "estimatedProgress")
     }
     
-    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
-            progressView.hidden = webView.estimatedProgress == 1
-            let progress: Float = progressView.hidden ? 0.0 : Float(webView.estimatedProgress)
+            progressView.isHidden = webView.estimatedProgress == 1
+            let progress: Float = progressView.isHidden ? 0.0 : Float(webView.estimatedProgress)
             progressView.setProgress(progress, animated: true)
         }
     }
@@ -193,7 +196,7 @@ extension N42WebViewController {
     }
     
     func touchActionButton() {
-        var tmpUrl = webView.URL
+        var tmpUrl = webView.url
         if let actionUrl = actionUrl {
             tmpUrl = actionUrl
         }
@@ -202,12 +205,12 @@ extension N42WebViewController {
             return
         }
 
-        if let absUrl = url.absoluteString where absUrl.hasPrefix("file:///") {
-            let docController = UIDocumentInteractionController(URL: url)
-            docController.presentOptionsMenuFromRect(view.bounds, inView: view, animated: true)
+        if url.absoluteString.hasPrefix("file:///") {
+            let docController = UIDocumentInteractionController(url: url)
+            docController.presentOptionsMenu(from: view.bounds, in: view, animated: true)
         } else {
             let activityController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-            presentViewController(activityController, animated: true, completion: nil)
+            present(activityController, animated: true, completion: nil)
         }
     }
 }
@@ -219,12 +222,12 @@ extension N42WebViewController {
             return
         }
         
-        backButton.enabled = webView.canGoBack
-        fowardButton.enabled = webView.canGoForward
+        backButton.isEnabled = webView.canGoBack
+        fowardButton.isEnabled = webView.canGoForward
         
-        let refreshOrStopButton = webView.loading ? stopButton : refreshButton
-        let fixedSpace = UIBarButtonItem(barButtonSystemItem: .FixedSpace, target: nil, action: nil)
-        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil)
+        let refreshOrStopButton = webView.isLoading ? stopButton : refreshButton
+        let fixedSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
 
         toolbarItems = [
             fixedSpace, backButton,
@@ -244,13 +247,13 @@ extension N42WebViewController {
 }
 
 extension N42WebViewController: WKNavigationDelegate {
-    public func webView(webView: WKWebView, didCommitNavigation navigation: WKNavigation!) {
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         refreshToolbarItems()
     }
     
-    public func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
         refreshToolbarItems()
         
         if navTitle == nil {
@@ -258,20 +261,20 @@ extension N42WebViewController: WKNavigationDelegate {
         }
     }
     
-    public func webView(webView: WKWebView, didFailNavigation navigation: WKNavigation!, withError error: NSError) {
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
         refreshToolbarItems()
     }
     
-    public func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let handler = decidePolicyForNavigationActionHandler {
-            handler(webView: webView, navigationAction: navigationAction, decisionHandler: decisionHandler)
-        } else if let url = navigationAction.request.URL {
+            handler(webView, navigationAction, decisionHandler)
+        } else if let url = navigationAction.request.url {
             let httpSchemes = ["http", "https"]
-            let app = UIApplication.sharedApplication()
-            if let scheme = url.scheme where !httpSchemes.contains(scheme) && app.canOpenURL(url) {
+            let app = UIApplication.shared
+            if let scheme = url.scheme, !httpSchemes.contains(scheme) && app.canOpenURL(url) {
                 app.openURL(url)
-                decisionHandler(.Cancel)
+                decisionHandler(.cancel)
                 return
             }
             
@@ -279,29 +282,29 @@ extension N42WebViewController: WKNavigationDelegate {
             // because WKWebView NSURLRequest body is nil.
             // - WKWebView ignores NSURLRequest body : https://forums.developer.apple.com/thread/18952
             // - Bug 145410 [WKWebView loadRequest:] ignores HTTPBody in POST requests : https://bugs.webkit.org/show_bug.cgi?id=145410
-            if navigationAction.navigationType == .LinkActivated
-                || navigationAction.navigationType == .BackForward
-                || navigationAction.navigationType == .Reload
+            if navigationAction.navigationType == .linkActivated
+                || navigationAction.navigationType == .backForward
+                || navigationAction.navigationType == .reload
             {
                 if let request = requestWithHeadersAllowHosts(navigationAction.request) {
-                    webView.loadRequest(request)
-                    decisionHandler(.Cancel)
+                    webView.load(request)
+                    decisionHandler(.cancel)
                     return
                 }
             }
-            decisionHandler(.Allow)
+            decisionHandler(.allow)
         } else {
-            decisionHandler(.Allow)
+            decisionHandler(.allow)
         }
     }
 }
 
 extension N42WebViewController: WKUIDelegate {
-    public func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+    public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         // Why is WKWebView not opening links with target=“_blank” http://stackoverflow.com/a/25853806/397457
-        let requestHandler = { (request: NSURLRequest) in
-            if !(navigationAction.targetFrame?.mainFrame ?? false) {
-                webView.loadRequest(request)
+        let requestHandler = { (request: URLRequest) in
+            if !(navigationAction.targetFrame?.isMainFrame ?? false) {
+                webView.load(request)
             }
         }
         
