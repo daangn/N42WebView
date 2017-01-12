@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Pod/Classes/**/*'
   s.resource_bundles = {
-    'N42WebView' => ['Pod/Assets/*']
+    'N42WebView' => ['Pod/Assets/**/*']
   }
 
   s.frameworks = 'UIKit', 'WebKit'
