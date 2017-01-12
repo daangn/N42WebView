@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "N42WebView"
-  s.version          = "0.3.0"
+  s.version          = "0.3.1"
   s.summary          = "In-app browser based WKWebView"
 
   s.description      = <<-DESC
