@@ -152,7 +152,7 @@ extension N42WebViewController {
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
     
-    func localize(text text: String) -> String {
+    func localize(text: String) -> String {
         guard let path = Bundle(for: type(of: self)).path(forResource: "N42WebView", ofType: "bundle"),
             let bundle = Bundle(path: path) else {
             return text
