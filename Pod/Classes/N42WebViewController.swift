@@ -151,6 +151,14 @@ extension N42WebViewController {
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
+    
+    func localize(text text: String) -> String {
+        guard let path = Bundle(for: type(of: self)).path(forResource: "N42WebView", ofType: "bundle"),
+            let bundle = Bundle(path: path) else {
+            return text
+        }
+        return bundle.localizedString(forKey: text, value: text, table: "N42WebView")
+    }
 }
 
 // ProgressView
@@ -315,5 +323,65 @@ extension N42WebViewController: WKUIDelegate {
         }
         
         return nil
+    }
+    
+    public func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let av = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        av.addAction(UIAlertAction(
+            title: localize(text: "OK"),
+            style: .default,
+            handler: { (action) in
+                completionHandler()
+            }
+        ))
+        present(av, animated: true, completion: nil)
+    }
+    
+    public func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let av = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        av.addAction(UIAlertAction(
+            title: localize(text: "OK"),
+            style: .default,
+            handler: { (action) in
+                completionHandler(true)
+            }
+        ))
+        av.addAction(UIAlertAction(
+            title: localize(text: "Cancel"),
+            style: .cancel,
+            handler: { (action) in
+                completionHandler(false)
+            }
+        ))
+        present(av, animated: true, completion: nil)
+    }
+    
+    public func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        let av = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+        av.addTextField { (textField) in
+            textField.text = defaultText
+        }
+        
+        av.addAction(UIAlertAction(
+            title: localize(text: "OK"),
+            style: .default,
+            handler: { (action) in
+                if let text = av.textFields?.first?.text {
+                    completionHandler(text)
+                } else {
+                    completionHandler(defaultText)
+                }
+            }
+        ))
+        
+        av.addAction(UIAlertAction(
+            title: localize(text: "Cancel"),
+            style: .cancel,
+            handler: { (action) in
+                completionHandler(nil)
+            }
+        ))
+        
+        present(av, animated: true, completion: nil)
     }
 }
