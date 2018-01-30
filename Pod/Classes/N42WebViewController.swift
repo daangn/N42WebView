@@ -17,70 +17,70 @@ open class N42WebViewController: UIViewController {
         webViewTmp.uiDelegate = self
         return webViewTmp
     }()
-    
+
     lazy var backButton: UIBarButtonItem = {
         return UIBarButtonItem(image: self.loadImageFromBundle("back"), style: .plain, target: self, action: #selector(N42WebViewController.touchBackButton))
     }()
-    
+
     lazy var fowardButton: UIBarButtonItem = {
         return UIBarButtonItem(image: self.loadImageFromBundle("forward"), style: .plain, target: self, action: #selector(N42WebViewController.touchFowardButton))
     }()
-    
+
     lazy var refreshButton: UIBarButtonItem = {
         var button = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(N42WebViewController.touchRefreshButton))
         return button
     }()
-    
+
     lazy var stopButton: UIBarButtonItem = {
         var button = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(N42WebViewController.touchStopButton))
         return button
     }()
-    
+
     lazy var actionButton: UIBarButtonItem = {
         var button = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(N42WebViewController.touchActionButton))
         return button
     }()
-    
+
     lazy var progressView: UIProgressView = {
         var progressView = UIProgressView(progressViewStyle: .default)
         return progressView
     }()
-    
-    
+
+
     open var webViewConfiguration: WKWebViewConfiguration?
     open var request: URLRequest?
     open var headers: [String: String]?
     open var allowHosts: [String]?
     open var decidePolicyForNavigationActionHandler: ((_ webView: WKWebView, _ navigationAction: WKNavigationAction, _ decisionHandler: (WKNavigationActionPolicy) -> Void) -> Void)?
-    
+
     open var hideToolbar: Bool = false
     open var toolbarStyle: UIBarStyle?
     open var toolbarTintColor: UIColor?
     open var actionUrl: URL?
     open var navTitle: String?
     open var progressViewTintColor: UIColor?
-    
+
     public required convenience init(coder aDecoder: NSCoder) {
         self.init(coder: aDecoder)
     }
-    
+
     public init(url: String) {
         if let url = URL(string: url) {
             self.request = URLRequest(url: url)
         }
-        
+
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     public init(request: URLRequest) {
         self.request = request
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     deinit {
         removeProgressViewObserver()
     }
-    
+
     fileprivate func loadImageFromBundle(_ name: String) -> UIImage? {
         let path = Bundle(for: type(of: self)).path(forResource: "N42WebView", ofType: "bundle")
         return UIImage(named: name, in: Bundle(path: path ?? ""), compatibleWith: nil)
@@ -97,7 +97,7 @@ extension N42WebViewController {
             }
         }
     }
-    
+
     func requestWithHeadersAllowHosts(_ request: URLRequest) -> URLRequest? {
         guard let host = request.url?.host, (allowHosts?.contains(host) ?? false) else {
             return nil
@@ -119,10 +119,10 @@ extension N42WebViewController {
         view = webView
         loadRequest()
     }
-    
+
     open override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         refreshToolbarItems()
         appendProgressView()
         if let navTitle = navTitle {
@@ -133,25 +133,25 @@ extension N42WebViewController {
     open override func viewDidLayoutSubviews() {
         progressView.frame = CGRect(x: 0, y: topLayoutGuide.length, width: view.frame.size.width, height: 0.5)
     }
-    
+
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         navigationController?.setToolbarHidden(hideToolbar, animated: true)
     }
-    
+
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         navigationController?.setToolbarHidden(true, animated: true)
     }
-    
+
     open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        
+
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
-    
+
     func localize(text: String) -> String {
         guard let path = Bundle(for: type(of: self)).path(forResource: "N42WebView", ofType: "bundle"),
             let bundle = Bundle(path: path) else {
@@ -170,11 +170,11 @@ extension N42WebViewController {
         }
         webView.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions.new, context: nil)
     }
-    
+
     func removeProgressViewObserver() {
         webView.removeObserver(self, forKeyPath: "estimatedProgress")
     }
-    
+
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
             progressView.isHidden = webView.estimatedProgress == 1
@@ -186,29 +186,29 @@ extension N42WebViewController {
 
 // Toolbar Action
 extension N42WebViewController {
-    func touchBackButton() {
+    @objc func touchBackButton() {
         webView.goBack()
     }
-    
-    func touchFowardButton() {
+
+    @objc func touchFowardButton() {
         webView.goForward()
     }
-    
-    func touchRefreshButton() {
+
+    @objc func touchRefreshButton() {
         webView.reload()
     }
-    
-    func touchStopButton() {
+
+    @objc func touchStopButton() {
         webView.stopLoading()
         refreshToolbarItems()
     }
-    
-    func touchActionButton() {
+
+    @objc func touchActionButton() {
         var tmpUrl = webView.url
         if let actionUrl = actionUrl {
             tmpUrl = actionUrl
         }
-        
+
         guard let url = tmpUrl else {
             return
         }
@@ -229,10 +229,10 @@ extension N42WebViewController {
         if hideToolbar {
             return
         }
-        
+
         backButton.isEnabled = webView.canGoBack
         fowardButton.isEnabled = webView.canGoForward
-        
+
         let refreshOrStopButton = webView.isLoading ? stopButton : refreshButton
         let fixedSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -243,11 +243,11 @@ extension N42WebViewController {
             flexibleSpace, refreshOrStopButton,
             flexibleSpace, actionButton
         ]
-        
+
         if let toolbarStyle = toolbarStyle {
             navigationController?.toolbar.barStyle = toolbarStyle
         }
-        
+
         if let toolbarTintColor = toolbarTintColor {
             navigationController?.toolbar.tintColor = toolbarTintColor
         }
@@ -259,21 +259,21 @@ extension N42WebViewController: WKNavigationDelegate {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
         refreshToolbarItems()
     }
-    
+
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
         refreshToolbarItems()
-        
+
         if navTitle == nil {
             navigationItem.title = webView.title
         }
     }
-    
+
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
         refreshToolbarItems()
     }
-    
+
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let handler = decidePolicyForNavigationActionHandler {
             handler(webView, navigationAction, decisionHandler)
@@ -285,7 +285,7 @@ extension N42WebViewController: WKNavigationDelegate {
                 decisionHandler(.cancel)
                 return
             }
-            
+
             // form submit is not request with header
             // because WKWebView NSURLRequest body is nil.
             // - WKWebView ignores NSURLRequest body : https://forums.developer.apple.com/thread/18952
@@ -315,16 +315,16 @@ extension N42WebViewController: WKUIDelegate {
                 webView.load(request)
             }
         }
-        
+
         if let request = requestWithHeadersAllowHosts(navigationAction.request) {
             requestHandler(request)
         } else {
             requestHandler(navigationAction.request)
         }
-        
+
         return nil
     }
-    
+
     public func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
         let av = UIAlertController(title: nil, message: message, preferredStyle: .alert)
         av.addAction(UIAlertAction(
@@ -336,7 +336,7 @@ extension N42WebViewController: WKUIDelegate {
         ))
         present(av, animated: true, completion: nil)
     }
-    
+
     public func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
         let av = UIAlertController(title: nil, message: message, preferredStyle: .alert)
         av.addAction(UIAlertAction(
@@ -355,13 +355,13 @@ extension N42WebViewController: WKUIDelegate {
         ))
         present(av, animated: true, completion: nil)
     }
-    
+
     public func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
         let av = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
         av.addTextField { (textField) in
             textField.text = defaultText
         }
-        
+
         av.addAction(UIAlertAction(
             title: localize(text: "OK"),
             style: .default,
@@ -373,7 +373,7 @@ extension N42WebViewController: WKUIDelegate {
                 }
             }
         ))
-        
+
         av.addAction(UIAlertAction(
             title: localize(text: "Cancel"),
             style: .cancel,
@@ -381,7 +381,7 @@ extension N42WebViewController: WKUIDelegate {
                 completionHandler(nil)
             }
         ))
-        
+
         present(av, animated: true, completion: nil)
     }
 }
