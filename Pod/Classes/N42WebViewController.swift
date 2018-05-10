@@ -112,6 +112,16 @@ extension N42WebViewController {
         return nil
     }
 
+    public func reload(withNavWebviews: Bool) {
+        webView.reload()
+        if withNavWebviews {
+            navigationController?.viewControllers.forEach({ vc in
+                if let webVC = vc as? N42WebViewController {
+                    webVC.reload(withNavWebviews: false)
+                }
+            })
+        }
+    }
 }
 
 extension N42WebViewController {
