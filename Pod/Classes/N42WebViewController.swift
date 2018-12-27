@@ -196,24 +196,24 @@ extension N42WebViewController {
 
 // Toolbar Action
 extension N42WebViewController {
-    func touchBackButton() {
+    @objc func touchBackButton() {
         webView.goBack()
     }
     
-    func touchFowardButton() {
+    @objc func touchFowardButton() {
         webView.goForward()
     }
     
-    func touchRefreshButton() {
+    @objc func touchRefreshButton() {
         webView.reload()
     }
     
-    func touchStopButton() {
+    @objc func touchStopButton() {
         webView.stopLoading()
         refreshToolbarItems()
     }
     
-    func touchActionButton() {
+    @objc func touchActionButton() {
         var tmpUrl = webView.url
         if let actionUrl = actionUrl {
             tmpUrl = actionUrl
