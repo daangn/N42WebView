@@ -112,6 +112,16 @@ extension N42WebViewController {
         return nil
     }
 
+    public func reload(withNavWebviews: Bool) {
+        webView.reload()
+        if withNavWebviews {
+            navigationController?.viewControllers.forEach({ vc in
+                if let webVC = vc as? N42WebViewController {
+                    webVC.reload(withNavWebviews: false)
+                }
+            })
+        }
+    }
 }
 
 extension N42WebViewController {
@@ -189,26 +199,26 @@ extension N42WebViewController {
     @objc func touchBackButton() {
         webView.goBack()
     }
-
+    
     @objc func touchFowardButton() {
         webView.goForward()
     }
-
+    
     @objc func touchRefreshButton() {
         webView.reload()
     }
-
+    
     @objc func touchStopButton() {
         webView.stopLoading()
         refreshToolbarItems()
     }
-
+    
     @objc func touchActionButton() {
         var tmpUrl = webView.url
         if let actionUrl = actionUrl {
             tmpUrl = actionUrl
         }
-
+        
         guard let url = tmpUrl else {
             return
         }
